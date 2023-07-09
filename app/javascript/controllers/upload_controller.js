@@ -2,8 +2,6 @@ import { Controller } from "@hotwired/stimulus"
 import JSZip from 'jszip';
 import * as Chartjs from "chart.js";
 
-const monthList = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER']
-
 export default class extends Controller {
   static targets = ['file','chart']
 
@@ -20,8 +18,22 @@ export default class extends Controller {
       const distanceByActivityAndYear = groupAndSumByProperties(compiledData, ["activity", "year"], "distance")
       console.log(distanceByActivityAndYear)
       console.log('minMax', minMax(distanceByActivityAndYear))
-      console.log(createBarChart(this.chartTarget, distanceByActivityAndYear))
+      this.chart = createBarChart(this.chartTarget, distanceByActivityAndYear)
     });
+  }
+
+  clickHandler(evt) {
+    console.log('mychart',this.chart)
+    const points = this.chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+    console.log(points)
+    if (points.length) {
+        const firstPoint = points[0];
+        const label = this.chart.data.labels[firstPoint.index];
+        const value = this.chart.data.datasets[firstPoint.datasetIndex].data[firstPoint.index];
+        console.log(firstPoint)
+        console.log(label)
+        console.log(this.chart.data)
+      }
   }
 
 }
@@ -165,7 +177,7 @@ function generateChartData(distanceByActivityAndYear) {
 
 
 function createBarChart(chartCanvas, data) {
-  new Chart(chartCanvas, {
+  return new Chart(chartCanvas, {
     type: 'bar',
     data: generateChartData(data),
     options: {
