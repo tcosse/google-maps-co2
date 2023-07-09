@@ -6,18 +6,13 @@ export default class extends Controller {
   static targets = ['file','chart']
 
   connect() {
-    console.log('file uploader')
   }
 
   fileLoaded(event) {
     event.preventDefault()
-    console.log('file loaded')
     const zipfile = this.fileTarget.files[0]
     getZippedData(zipfile).then(compiledData => {
-      console.log(compiledData)
       const distanceByActivityAndYear = groupAndSumByProperties(compiledData, ["activity", "year"], "distance")
-      console.log(distanceByActivityAndYear)
-      console.log('minMax', minMax(distanceByActivityAndYear))
       this.chart = createBarChart(this.chartTarget, distanceByActivityAndYear)
     });
   }
@@ -28,11 +23,9 @@ export default class extends Controller {
     console.log(points)
     if (points.length) {
         const firstPoint = points[0];
-        const label = this.chart.data.labels[firstPoint.index];
-        const value = this.chart.data.datasets[firstPoint.datasetIndex].data[firstPoint.index];
-        console.log(firstPoint)
-        console.log(label)
-        console.log(this.chart.data)
+        const year = this.chart.data.labels[firstPoint.index];
+        const activity = this.chart.data.datasets[firstPoint.datasetIndex].label;
+        console.log('year :', year, 'activity :', activity)
       }
   }
 
@@ -101,7 +94,7 @@ function groupAndSumByProperties(data, groupByProperties, sumProperty) {
 
     return acc;
   }, {});
-
+  console.log(groupedSum)
   const result = Object.values(groupedSum);
   return cleanData(result);
 }
@@ -161,8 +154,6 @@ function generateChartData(distanceByActivityAndYear) {
   const activities = Object.keys(groupedByActivityData)
   const datasets = []
   const [minYear, maxYear] = minMax(distanceByActivityAndYear)
-  console.log(groupedByActivityData)
-  console.log(activities)
   activities.sort().forEach((activity)=> {
     // Object keys returns an array of the object's key, that is to say all the activities, which we then sort alphabetically and iterate through
     datasets.push({
