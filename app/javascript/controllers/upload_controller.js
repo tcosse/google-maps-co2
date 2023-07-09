@@ -178,7 +178,6 @@ function createBarChart(chartCanvas, data) {
       responsive: true,
       interaction: {
         intersect: false,
-        mode: 'myCustomMode'
       },
       scales: {
         x: {
