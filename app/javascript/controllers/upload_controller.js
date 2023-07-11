@@ -2,6 +2,28 @@ import { Controller } from "@hotwired/stimulus"
 import JSZip from 'jszip';
 import * as Chartjs from "chart.js";
 
+// We mapped google maps activities to CO2 emission coefficients given by the ADEME
+// The ADEME is the french public institution for Carbon footprint monitoring
+// Their carbon footprint calculator :   https://datagir.ademe.fr/apps/mon-impact-transport/
+// Also here is the API to collect this data: https://github.com/incubateur-ademe/monimpacttransport
+const kgCO2PerKmPerActivity = {
+  "IN_PASSENGER_VEHICLE": 0.193, //We consider that IN_PASSENGER_VEHICLE is equivalennt to a thermic car
+  "MOTORCYCLING": 0.168,
+  "FLYING": 0.23,
+  "IN_BUS": 0.103, // this is the coefficient for thermic buses
+  "IN_TRAIN": 0.0041, // this coefficient correspond to the emissions of a RER or transilien (suburban parisian train)
+  "IN_TRAM": 0.0022,
+  "IN_SUBWAY": 0.0025,
+  "KAYAKING": 0,
+  "IN_FERRY": 0.3,
+  "BOATING": 0,
+  "RUNNING": 0,
+  "SAILING": 0,
+  "WALKING": 0,
+  "CYCLING": 0,
+  "UNKNOWN_ACTIVITY_TYPE": 0,
+}
+
 export default class extends Controller {
   static targets = ['file','chart']
 
@@ -12,24 +34,24 @@ export default class extends Controller {
     event.preventDefault()
     const zipfile = this.fileTarget.files[0]
     getZippedData(zipfile).then(compiledData => {
-      const distanceByActivityAndYear = groupAndSumByProperties(compiledData, ["activity", "year"], "distance")
-      this.chart = createBarChart(this.chartTarget, distanceByActivityAndYear)
+      console.log(compiledData)
+      console.log(kgCO2PerKmPerActivity)
+      const kgCO2EmissionsByActivityAndYear = groupAndSumByProperties(compiledData, ["activity", "year"], "kgCO2")
+      console.log('CO2EmissionsByActivityAndYear', kgCO2EmissionsByActivityAndYear)
+      this.chart = createBarChart(this.chartTarget, kgCO2EmissionsByActivityAndYear)
     });
   }
 
   clickHandler(evt) {
-    console.log('mychart',this.chart)
     const points = this.chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-    console.log(points)
     if (points.length) {
         const firstPoint = points[0];
         const year = this.chart.data.labels[firstPoint.index];
         const activity = this.chart.data.datasets[firstPoint.datasetIndex].label;
-        console.log('year :', year, 'activity :', activity)
       }
   }
-
 }
+
 
 function getZippedData(zipfile) {
   return new Promise((resolve, reject) => {
@@ -45,13 +67,14 @@ function getZippedData(zipfile) {
           promises.push(zipentry.async('string').then((filedata) => {
             filedata = JSON.parse(filedata)
             const data = filedata.timelineObjects.reduce((acc, history_item) => {
-              if ('activitySegment' in history_item) {
+              if (('activitySegment' in history_item) && !(typeof(history_item.activitySegment.distance)==='undefined')) {
                 acc.push({
                     year: year,
                     month: month,
                     confidence: history_item.activitySegment.confidence,
                     activity: history_item.activitySegment.activityType,
                     distance: history_item.activitySegment.distance,
+                    kgCO2: history_item.activitySegment.distance/1000 * kgCO2PerKmPerActivity[history_item.activitySegment.activityType],
                     duration: history_item.activitySegment.duration,
                     startLocation: { latitudeE7: history_item.activitySegment.startLocation.latitudeE7, longitudeE7: history_item.activitySegment.startLocation.longitudeE7 },
                     endLocation: { latitudeE7: history_item.activitySegment.endLocation.latitudeE7, longitudeE7: history_item.activitySegment.endLocation.longitudeE7 },
@@ -86,43 +109,39 @@ function groupAndSumByProperties(data, groupByProperties, sumProperty) {
           result[prop] = obj[prop];
           return result;
         }, {}),
-        [sumProperty]: obj[sumProperty]
+        [sumProperty]: obj[sumProperty],
+        data:  [obj]
       };
     } else {
       acc[key][sumProperty] += obj[sumProperty];
+      acc[key]['data'].push(obj)
     }
 
     return acc;
   }, {});
-  console.log(groupedSum)
   const result = Object.values(groupedSum);
-  return cleanData(result);
+  return result;
 }
 
 function groupByActivity(data){
+  // groupByActivity returns an object where each key is an activitype (ie FLYING, WALKING).
+  // That key is associated with a value : an array containing all total yearly CO2 Emissions records for this activity
   return data.reduce((acc, cur) => {
-    acc[cur['activity']] = acc[cur['activity']] || {}; // if the key is new, initiate its value to an object, otherwise keep its own array value
-    acc[cur['activity']][cur['year']] = cur['distance'];
+    acc[cur['activity']] = acc[cur['activity']] || {}; // if the key is new, initiate its value to an object, otherwise keep its value
+    acc[cur['activity']][cur['year']] = cur['kgCO2'];
     return acc;
   }, {})
 }
 
-function cleanData(data){
-  const cleanedData = []
-  data.forEach((elem) => {
-    if (!Number.isNaN(elem.distance) && elem.activity !== undefined ) {
-      cleanedData.push(elem)
-    }
-  })
-  return cleanedData;
-}
+function minMax(dataArray, property){
+  // Returns the minimum and maximum property value in an array containing objects who all have this property
 
-function minMax(data){
-  let maxYear = data[0]['year']
-  let minYear = data[0]['year']
-  data.forEach(element => {
-    if (element['year'] > maxYear) {maxYear = element['year']}
-    if (element['year'] < minYear) {minYear = element['year']}
+  // initialize the maxYear and minYear with the first element of the dataset
+  let maxYear = dataArray[0][property]
+  let minYear = dataArray[0][property]
+  dataArray.forEach(element => {
+    if (element[property] > maxYear) {maxYear = element[property]}
+    if (element[property] < minYear) {minYear = element[property]}
   })
   return [minYear, maxYear]
 }
@@ -135,13 +154,11 @@ function arrayRange(start, stop) {
   return array
 }
 
-function YearlyArray(distancesByYear, minYear, maxYear) {
+function yearlyCO2EmissionsTons(kgCO2EmissionsByYear, minYear, maxYear) {
   const YearlyDataArray = []
-  console.log(distancesByYear)
   for (let year = minYear; year < (maxYear + 1); year++) {
-    console.log(year)
-    if (distancesByYear.hasOwnProperty(year)) {
-      YearlyDataArray.push(distancesByYear[year])
+    if (kgCO2EmissionsByYear.hasOwnProperty(year)) {
+      YearlyDataArray.push(Math.floor(kgCO2EmissionsByYear[year]))
     } else {
       YearlyDataArray.push(0)
     }
@@ -149,20 +166,26 @@ function YearlyArray(distancesByYear, minYear, maxYear) {
   return YearlyDataArray
 }
 
-function generateChartData(distanceByActivityAndYear) {
-  const groupedByActivityData = groupByActivity(distanceByActivityAndYear)
+function generateChartData(kgCO2EmissionsByActivityAndYear) {
+  // groupByActivity returns an object with each key is the activityType and the value is an array of all the yearly CO2 Emissions totals
+  const groupedByActivityData = groupByActivity(kgCO2EmissionsByActivityAndYear)
+  console.log(groupedByActivityData)
   const activities = Object.keys(groupedByActivityData)
   const datasets = []
-  const [minYear, maxYear] = minMax(distanceByActivityAndYear)
+
+  // get the minimum and maximum years of the grouped CO2 emissions
+  const [minYear, maxYear] = minMax(kgCO2EmissionsByActivityAndYear, 'year')
+
   activities.sort().forEach((activity)=> {
     // Object keys returns an array of the object's key, that is to say all the activities, which we then sort alphabetically and iterate through
     datasets.push({
       label: activity,
-      data: YearlyArray(groupedByActivityData[activity], minYear, maxYear),
+      data: yearlyCO2EmissionsTons(groupedByActivityData[activity], minYear, maxYear),
       borderWidth: 1,
       stack: 'Activities'
     })
   })
+  console.log(datasets)
   return {labels: arrayRange(minYear, maxYear), datasets: datasets};
 }
 
@@ -175,7 +198,7 @@ function createBarChart(chartCanvas, data) {
       plugins: {
         title: {
           display: true,
-          text: 'Total Distances by Activity Types'
+          text: 'CO2 emissions (kg) by Activity Types'
         },
       },
       responsive: true,
