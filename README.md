@@ -1,24 +1,12 @@
-# README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This project is under development.
 
-Things you may want to cover:
+The objective is to create a website to analyse your Google Location History in order to calculate the carbon footprint of your trips.
 
-* Ruby version
+If you're a Google Maps user, Google can store and analyse your location data (if you've activated your location history, which is deactivated by default).
+Google computes all your different itineraries and the type of transportation you used (car, bike, walk, plane, boat...).
+You can view your google maps location history using [Google Maps Timeline](https://timeline.google.com/maps/timeline).
 
-* System dependencies
+You can export this data using [Google Takeout](https://takeout.google.com/) : check location history, and then upload the zip file to the website.
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+If you have any feedback, feel free to contact me !
