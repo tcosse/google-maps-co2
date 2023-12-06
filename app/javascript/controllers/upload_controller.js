@@ -11,7 +11,7 @@ const kgCO2PerKmPerActivity = {
   "MOTORCYCLING": 0.168,
   "FLYING": 0.23,
   "IN_BUS": 0.103, // this is the coefficient for thermic buses
-  "IN_TRAIN": 0.0041, // this coefficient correspond to the emissions of a RER or transilien (suburban parisian train)
+  "IN_TRAIN": 0.0041, // this coefficient correspond to the emissions of an RER or Transilien (suburban parisian train)
   "IN_TRAM": 0.0022,
   "IN_SUBWAY": 0.0025,
   "KAYAKING": 0,
@@ -25,14 +25,16 @@ const kgCO2PerKmPerActivity = {
 }
 
 export default class extends Controller {
-  static targets = ['file','chart']
+  static targets = ['file','chart','table']
 
   connect() {
   }
 
   fileLoaded(event) {
+    // Load Takeout file
     event.preventDefault()
     const zipfile = this.fileTarget.files[0]
+    // getZipped
     getZippedData(zipfile).then(compiledData => {
       console.log(compiledData)
       console.log(kgCO2PerKmPerActivity)
@@ -61,6 +63,7 @@ function getZippedData(zipfile) {
       const promises = [];
       unzipped.forEach((filepath, zipentry) => {
         if (regex.test(filepath)) {
+          // if filename has the right structure (meaning it fits the regex)
           var matches = filepath.match(regex)
           var year = parseInt(matches[1])
           var month = matches[2]
