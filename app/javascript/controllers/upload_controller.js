@@ -25,7 +25,7 @@ const kgCO2PerKmPerActivity = {
 }
 
 export default class extends Controller {
-  static targets = ['file','chart','table']
+  static targets = ['file','chart','table','tableHeaderRow','tableBody']
 
   connect() {
   }
@@ -36,12 +36,26 @@ export default class extends Controller {
     const zipfile = this.fileTarget.files[0]
     // getZipped
     getZippedData(zipfile).then(compiledData => {
-      // console.log(compiledData)
+      console.log(compiledData)
       // console.log(kgCO2PerKmPerActivity)
       const kgCO2EmissionsByActivityAndYear = groupAndSumByProperties(compiledData, ["activity", "year"], "kgCO2")
       // console.log('CO2EmissionsByActivityAndYear', kgCO2EmissionsByActivityAndYear)
       this.chart = createBarChart(this.chartTarget, kgCO2EmissionsByActivityAndYear)
+      const columns = ["distance","confidence"]
+      columns.forEach(column => {
+        this.tableHeaderRowTarget.innerHTML += `<th scope='col' class='text-sm font-medium text-gray-900 px-6 py-4 text-left'>${column}</th>`
+        console.log(this.tableHeaderRowTarget)
+      })
+      let index = 1;
+      while(index <= compiledData.length && index < 10) {
+        let textToInsert = "";
+        columns.forEach(column => textToInsert +=`<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${compiledData[index][column]}</td>`)
+        index ++
+        this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-gray-100 border-b" data-upload-target="tableRow">${textToInsert}</tr>`)
+      }
+      console.log(this.tableBodyTarget)
     });
+
   }
 
   clickHandler(evt) {
@@ -171,7 +185,7 @@ function yearlyCO2EmissionsTons(kgCO2EmissionsByYear, minYear, maxYear) {
 function generateChartData(kgCO2EmissionsByActivityAndYear) {
   // groupByActivity returns an object with each key is the activityType and the value is an array of all the yearly CO2 Emissions totals
   const groupedByActivityData = groupByActivity(kgCO2EmissionsByActivityAndYear)
-  // console.log(groupedByActivityData)
+  console.log(groupedByActivityData)
   const activities = Object.keys(groupedByActivityData)
   const datasets = []
 
@@ -190,7 +204,6 @@ function generateChartData(kgCO2EmissionsByActivityAndYear) {
   console.log(datasets)
   return {labels: arrayRange(minYear, maxYear), datasets: datasets};
 }
-
 
 function createBarChart(chartCanvas, data) {
   return new Chart(chartCanvas, {
@@ -218,4 +231,8 @@ function createBarChart(chartCanvas, data) {
       }
     }
   });
+}
+
+function createTable(data, columns, numberOfItems){
+
 }
