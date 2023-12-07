@@ -41,18 +41,27 @@ export default class extends Controller {
       const kgCO2EmissionsByActivityAndYear = groupAndSumByProperties(compiledData, ["activity", "year"], "kgCO2")
       // console.log('CO2EmissionsByActivityAndYear', kgCO2EmissionsByActivityAndYear)
       this.chart = createBarChart(this.chartTarget, kgCO2EmissionsByActivityAndYear)
+
+      // Create table with the desired values
       const columns = ["distance","confidence"]
       columns.forEach(column => {
+        // create table header
         this.tableHeaderRowTarget.innerHTML += `<th scope='col' class='text-sm font-medium text-gray-900 px-6 py-4 text-left'>${column}</th>`
-        console.log(this.tableHeaderRowTarget)
       })
+
+      // Create rows
       let index = 1;
       while(index <= compiledData.length && index < 10) {
         let textToInsert = "";
         columns.forEach(column => textToInsert +=`<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${compiledData[index][column]}</td>`)
         index ++
-        if (index % 2 == 0) {this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-gray-100 border-b" data-upload-target="tableRow">${textToInsert}</tr>`)}
-        else {this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-white border-b" data-upload-target="tableRow">${textToInsert}</tr>`)}
+        if (index % 2 == 0) {
+          // there are two different background colors that alternate for each row
+          this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-gray-100 border-b" data-upload-target="tableRow">${textToInsert}</tr>`)
+        }
+        else {
+          this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-white border-b" data-upload-target="tableRow">${textToInsert}</tr>`)
+        }
       }
       console.log(this.tableBodyTarget)
     });
