@@ -16,7 +16,7 @@ const kgCO2PerKmPerActivity = {
   "IN_SUBWAY": 0.0025,
   "KAYAKING": 0,
   "IN_FERRY": 0.3,
-  "BOATING": 0,
+  "BOATING": 0.3,
   "RUNNING": 0,
   "SAILING": 0,
   "WALKING": 0,
@@ -36,10 +36,10 @@ export default class extends Controller {
     const zipfile = this.fileTarget.files[0]
     // getZipped
     getZippedData(zipfile).then(compiledData => {
-      console.log(compiledData)
-      console.log(kgCO2PerKmPerActivity)
+      // console.log(compiledData)
+      // console.log(kgCO2PerKmPerActivity)
       const kgCO2EmissionsByActivityAndYear = groupAndSumByProperties(compiledData, ["activity", "year"], "kgCO2")
-      console.log('CO2EmissionsByActivityAndYear', kgCO2EmissionsByActivityAndYear)
+      // console.log('CO2EmissionsByActivityAndYear', kgCO2EmissionsByActivityAndYear)
       this.chart = createBarChart(this.chartTarget, kgCO2EmissionsByActivityAndYear)
     });
   }
@@ -53,7 +53,6 @@ export default class extends Controller {
       }
   }
 }
-
 
 function getZippedData(zipfile) {
   return new Promise((resolve, reject) => {
@@ -172,7 +171,7 @@ function yearlyCO2EmissionsTons(kgCO2EmissionsByYear, minYear, maxYear) {
 function generateChartData(kgCO2EmissionsByActivityAndYear) {
   // groupByActivity returns an object with each key is the activityType and the value is an array of all the yearly CO2 Emissions totals
   const groupedByActivityData = groupByActivity(kgCO2EmissionsByActivityAndYear)
-  console.log(groupedByActivityData)
+  // console.log(groupedByActivityData)
   const activities = Object.keys(groupedByActivityData)
   const datasets = []
 
@@ -205,6 +204,7 @@ function createBarChart(chartCanvas, data) {
         },
       },
       responsive: true,
+      maintainAspectRatio: false,
       interaction: {
         intersect: false,
       },
