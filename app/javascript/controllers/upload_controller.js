@@ -43,25 +43,31 @@ export default class extends Controller {
       this.chart = createBarChart(this.chartTarget, kgCO2EmissionsByActivityAndYear)
 
       // Create table with the desired values
-      const columns = ["distance","confidence"]
+      const columns = ["index","distance","confidence"]
       columns.forEach(column => {
         // create table header
-        this.tableHeaderRowTarget.innerHTML += `<th scope='col' class='text-sm font-medium text-gray-900 px-6 py-4 text-left'>${column}</th>`
+          this.tableHeaderRowTarget.innerHTML += `<th scope='col' class='text-sm font-medium text-gray-900 px-6 py-4 text-left'>${column}</th>`
       })
 
       // Create rows
       let index = 1;
       while(index <= compiledData.length && index < 10) {
         let textToInsert = "";
-        columns.forEach(column => textToInsert +=`<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${compiledData[index][column]}</td>`)
-        index ++
+        columns.forEach(column => {
+          if (column == 'index') {
+            textToInsert +=`<td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">${index}</td>`
+          } else {
+            textToInsert +=`<td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">${compiledData[index][column]}</td>`
+          }
+        })
         if (index % 2 == 0) {
           // there are two different background colors that alternate for each row
-          this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-gray-100 border-b" data-upload-target="tableRow">${textToInsert}</tr>`)
+          this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-white border-b">${textToInsert}</tr>`)
         }
         else {
-          this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-white border-b" data-upload-target="tableRow">${textToInsert}</tr>`)
+          this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-gray-100 border-b">${textToInsert}</tr>`)
         }
+        index ++
       }
       console.log(this.tableBodyTarget)
     });
@@ -93,7 +99,7 @@ function getZippedData(zipfile) {
           promises.push(zipentry.async('string').then((filedata) => {
             filedata = JSON.parse(filedata)
             const data = filedata.timelineObjects.reduce((acc, history_item) => {
-              if (('activitySegment' in history_item) && !(typeof(history_item.activitySegment.distance)==='undefined')) {
+              if (('activitySegment' in history_item) && !(typeof(history_item.activitySegment.distance)==='undefined') && !(kgCO2PerKmPerActivity[history_item.activitySegment.activityType]=== 0) && !(history_item.activitySegment.activityType === 'undefined')) {
                 acc.push({
                     year: year,
                     month: month,
@@ -129,7 +135,7 @@ function groupAndSumByProperties(data, groupByProperties, sumProperty) {
   const groupedSum = data.reduce((acc, obj) => {
     const key = groupByProperties.map(prop => obj[prop]).join('-');
 
-    if (!acc[key]) {
+    if ((!acc[key])) {
       acc[key] = {
         ...groupByProperties.reduce((result, prop) => {
           result[prop] = obj[prop];
