@@ -51,7 +51,8 @@ export default class extends Controller {
         let textToInsert = "";
         columns.forEach(column => textToInsert +=`<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${compiledData[index][column]}</td>`)
         index ++
-        this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-gray-100 border-b" data-upload-target="tableRow">${textToInsert}</tr>`)
+        if (index % 2 == 0) {this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-gray-100 border-b" data-upload-target="tableRow">${textToInsert}</tr>`)}
+        else {this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-white border-b" data-upload-target="tableRow">${textToInsert}</tr>`)}
       }
       console.log(this.tableBodyTarget)
     });
