@@ -25,7 +25,7 @@ const kgCO2PerKmPerActivity = {
 }
 
 export default class extends Controller {
-  static targets = ['file','chart','table','tableHeaderRow','tableBody']
+  static targets = ['file','chart','table','tableHeader','tableBody']
 
   connect() {
   }
@@ -43,33 +43,32 @@ export default class extends Controller {
       this.chart = createBarChart(this.chartTarget, kgCO2EmissionsByActivityAndYear)
 
       // Create table with the desired values
-      const columns = ["index","distance","confidence"]
+      const columns = ["activity","distance","kgCO2"]
+      const headerRow = document.createElement("tr")
       columns.forEach(column => {
         // create table header
-          this.tableHeaderRowTarget.innerHTML += `<th scope='col' class='text-sm font-medium text-gray-900 px-6 py-4 text-left'>${column}</th>`
+        const tableHeader = document.createElement('th')
+        tableHeader.innerText = column
+        headerRow.appendChild(tableHeader)
       })
+      this.tableHeaderTarget.appendChild(headerRow)
 
-      // Create rows
-      let index = 1;
-      while(index <= compiledData.length && index < 10) {
-        let textToInsert = "";
+      // sort data array
+      sortByKey(compiledData, 'kgCO2')
+      console.log(compiledData)
+
+      // display table
+      let i = 1;
+      while(i <= compiledData.length && i < 10) {
+        const row = document.createElement('tr')
         columns.forEach(column => {
-          if (column == 'index') {
-            textToInsert +=`<td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">${index}</td>`
-          } else {
-            textToInsert +=`<td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">${compiledData[index][column]}</td>`
-          }
+          const data = document.createElement('td')
+          data.innerText = compiledData[i][column]
+          row.appendChild(data)
         })
-        if (index % 2 == 0) {
-          // there are two different background colors that alternate for each row
-          this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-white border-b">${textToInsert}</tr>`)
-        }
-        else {
-          this.tableBodyTarget.insertAdjacentHTML('beforeend',`<tr class="bg-gray-100 border-b">${textToInsert}</tr>`)
-        }
-        index ++
+        this.tableBodyTarget.appendChild(row)
+        i ++
       }
-      console.log(this.tableBodyTarget)
     });
 
   }
@@ -249,6 +248,8 @@ function createBarChart(chartCanvas, data) {
   });
 }
 
-function createTable(data, columns, numberOfItems){
-
+function sortByKey(array, key) {
+  array.sort(function(a, b) {
+    return b[key] - a[key];
+  });
 }

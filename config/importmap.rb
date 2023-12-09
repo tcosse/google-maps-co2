@@ -24,3 +24,5 @@ pin "string_decoder", to: "https://ga.jspm.io/npm:string_decoder@1.1.1/lib/strin
 pin "util", to: "https://ga.jspm.io/npm:@jspm/core@2.0.1/nodelibs/browser/util.js"
 pin "util-deprecate", to: "https://ga.jspm.io/npm:util-deprecate@1.0.2/browser.js"
 pin "chart.js", to: "https://cdn.jsdelivr.net/npm/chart.js"
+pin "bootstrap", to: "https://ga.jspm.io/npm:bootstrap@5.3.2/dist/js/bootstrap.esm.js"
+pin "@popperjs/core", to: "https://ga.jspm.io/npm:@popperjs/core@2.11.8/lib/index.js"
