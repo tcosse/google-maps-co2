@@ -25,7 +25,7 @@ const kgCO2PerKmPerActivity = {
 }
 
 export default class extends Controller {
-  static targets = ['file','chart','table','tableHeader','tableBody']
+  static targets = ['file','chart','table','tableHeader','tableBody','tableTitle']
 
   connect() {
   }
@@ -43,7 +43,7 @@ export default class extends Controller {
       this.chart = createBarChart(this.chartTarget, kgCO2EmissionsByActivityAndYear)
 
       // Create table with the desired values
-      const columns = ["activity","distance","kgCO2"]
+      const columns = ["activity","distance","kgCO2","year","month"]
       const headerRow = document.createElement("tr")
       columns.forEach(column => {
         // create table header
@@ -69,6 +69,7 @@ export default class extends Controller {
         this.tableBodyTarget.appendChild(row)
         i ++
       }
+      this.tableTitleTarget.classList.remove('visually-hidden')
     });
 
   }
