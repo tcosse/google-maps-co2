@@ -43,7 +43,8 @@ export default class extends Controller {
       this.chart = createBarChart(this.chartTarget, kgCO2EmissionsByActivityAndYear)
 
       // Create table with the desired values
-      const columns = ["activity","distance","kgCO2","year","month"]
+      const columns = ["activity","distance","kgCO2","confidence","year","month","startLocation","endLocation",'startTime','endTime']
+
       const headerRow = document.createElement("tr")
       columns.forEach(column => {
         // create table header
@@ -59,12 +60,30 @@ export default class extends Controller {
 
       // display table
       let i = 1;
-      while(i <= compiledData.length && i < 10) {
+      while(i <= compiledData.length && i <= 20) {
         const row = document.createElement('tr')
+        const element = compiledData[i]
         columns.forEach(column => {
-          const data = document.createElement('td')
-          data.innerText = compiledData[i][column]
-          row.appendChild(data)
+          const td = document.createElement('td')
+          if ((column === "startLocation") || (column === "endLocation")) {
+            const latitudeInDecimals = (element[column].latitudeE7 / Math.pow(10, 7))
+            const longitudeInDecimals = (element[column].longitudeE7 / Math.pow(10, 7))
+            const queryUrl =`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitudeInDecimals},${latitudeInDecimals}.json?access_token=pk.eyJ1IjoidGNvc3NlMTIzIiwiYSI6ImNscHV4ZDhxZjAweGUya3F3cDdlNGZta2cifQ.tdpmH2eHic4mgQxNYuNtIw`
+            fetch(queryUrl)
+            .then(response => response.json())
+            .then((featureCollection) => {
+              console.log(featureCollection)
+              const placeName = featureCollection.features[0].place_name
+              td.innerText = placeName
+            })
+          } else if (column == 'startTime') {
+            td.innerText = element.duration.startTimestamp
+          } else if (column == 'endTime') {
+            td.innerText = element.duration.endTimestamp
+          } else {
+            td.innerText = element[column]
+          }
+          row.appendChild(td)
         })
         this.tableBodyTarget.appendChild(row)
         i ++
@@ -253,4 +272,17 @@ function sortByKey(array, key) {
   array.sort(function(a, b) {
     return b[key] - a[key];
   });
+}
+
+function getPlaceName(longitudeInDecimals,latitudeInDecimals) {
+  const queryUrl =`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitudeInDecimals},${latitudeInDecimals}.json?access_token=pk.eyJ1IjoidGNvc3NlMTIzIiwiYSI6ImNscHV4ZDhxZjAweGUya3F3cDdlNGZta2cifQ.tdpmH2eHic4mgQxNYuNtIw`
+  console.log(queryUrl)
+  return new Promise((resolve,reject) => {
+  fetch(queryUrl)
+  .then(response => response.json())
+  .then((featureCollection) => {
+    const placeName = featureCollection.features[0].place_name
+    console.log(placeName)
+    return placeName
+  })})
 }
