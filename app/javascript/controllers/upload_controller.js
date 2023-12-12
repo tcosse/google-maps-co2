@@ -82,9 +82,9 @@ export default class extends Controller {
               td.innerText = place.place_name
             })
           } else if (column == 'startTime') {
-            td.innerText = element.duration.startTimestamp
+            td.innerText = (new Date(element.duration.startTimestamp)).toLocaleString()
           } else if (column == 'endTime') {
-            td.innerText = element.duration.endTimestamp
+            td.innerText = (new Date(element.duration.endTimestamp)).toLocaleString()
           } else if (column === 'kgCO2') {
             console.log(Number(element.kgCO2).toFixed(0).toLocaleString())
             td.innerText = Number(element.kgCO2).toFixed(0).toLocaleString()
