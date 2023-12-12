@@ -74,3 +74,5 @@ end
 gem "foreman", "~> 0.87.2"
 
 gem "bootstrap", "~> 5.2.3"
+
+gem 'dotenv-rails', groups: [:development, :test]

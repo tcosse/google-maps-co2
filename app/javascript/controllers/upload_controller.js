@@ -26,6 +26,7 @@ const kgCO2PerKmPerActivity = {
 
 export default class extends Controller {
   static targets = ['file','chart','table','tableHeader','tableBody','tableTitle']
+  static values =  {apiKey: String}
 
   connect() {
   }
@@ -68,18 +69,25 @@ export default class extends Controller {
           if ((column === "startLocation") || (column === "endLocation")) {
             const latitudeInDecimals = (element[column].latitudeE7 / Math.pow(10, 7))
             const longitudeInDecimals = (element[column].longitudeE7 / Math.pow(10, 7))
-            const queryUrl =`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitudeInDecimals},${latitudeInDecimals}.json?access_token=pk.eyJ1IjoidGNvc3NlMTIzIiwiYSI6ImNscHV4ZDhxZjAweGUya3F3cDdlNGZta2cifQ.tdpmH2eHic4mgQxNYuNtIw`
+            const queryUrl =`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitudeInDecimals},${latitudeInDecimals}.json?access_token=${this.apiKeyValue}`
             fetch(queryUrl)
             .then(response => response.json())
             .then((featureCollection) => {
               console.log(featureCollection)
-              const placeName = featureCollection.features[0].place_name
-              td.innerText = placeName
+              const place = featureCollection.features.find(feature => {
+                return feature.place_type.includes('place')
+              })
+              console.log("place :")
+              console.log(place)
+              td.innerText = place.place_name
             })
           } else if (column == 'startTime') {
             td.innerText = element.duration.startTimestamp
           } else if (column == 'endTime') {
             td.innerText = element.duration.endTimestamp
+          } else if (column === 'kgCO2') {
+            console.log(Number(element.kgCO2).toFixed(0).toLocaleString())
+            td.innerText = Number(element.kgCO2).toFixed(0).toLocaleString()
           } else {
             td.innerText = element[column]
           }
