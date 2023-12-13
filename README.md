@@ -1,5 +1,5 @@
 
-This project is under development. The website in production can be found here : https://my-google-maps-co2.osc-fr1.scalingo.io/
+This project is under development.
 
 The objective is to create a website to analyse your Google Location History in order to calculate the carbon footprint of your trips.
 
