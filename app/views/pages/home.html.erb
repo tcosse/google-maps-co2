@@ -3,11 +3,15 @@
   <div class="chart-container" style="position: relative; height: 80vh">
     <canvas id="myChart" data-upload-target="chart" data-action='click->upload#clickHandler'></canvas>
 
-  <h2 class="visually-hidden pt-4 pb-2" data-upload-target="tableTitle">Most emissive Trips</h2>
+  <h2 class="visually-hidden pt-4 pb-2" data-upload-target="tableTitle">Your 10 most emissive trips</h2>
   <table class="table" data-upload-target='table'>
     <thead data-upload-target='tableHeader'>
     </thead>
     <tbody data-upload-target='tableBody'>
+      <template data-upload-target='tableRow'>
+        <tr data-controller='row' class='table-row' data-action='click->row#click'>
+        </tr>
+      </template>
     </tbody>
   </table>
   </div>

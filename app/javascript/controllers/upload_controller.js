@@ -25,7 +25,7 @@ const kgCO2PerKmPerActivity = {
 }
 
 export default class extends Controller {
-  static targets = ['file','chart','table','tableHeader','tableBody','tableTitle']
+  static targets = ['file','chart','table','tableHeader','tableBody','tableTitle','tableRow']
   static values =  {apiKey: String}
 
   connect() {
@@ -61,8 +61,9 @@ export default class extends Controller {
 
       // display table
       let i = 1;
-      while(i <= compiledData.length && i <= 20) {
-        const row = document.createElement('tr')
+      while(i <= compiledData.length && i <= 10) {
+        const rowTemplate = this.tableRowTarget.content.cloneNode(true)
+        const row = rowTemplate.querySelector('tr')
         const element = compiledData[i]
         columns.forEach(column => {
           const td = document.createElement('td')
@@ -73,12 +74,9 @@ export default class extends Controller {
             fetch(queryUrl)
             .then(response => response.json())
             .then((featureCollection) => {
-              console.log(featureCollection)
               const place = featureCollection.features.find(feature => {
                 return feature.place_type.includes('place')
               })
-              console.log("place :")
-              console.log(place)
               td.innerText = place.place_name
             })
           } else if (column == 'startTime') {
@@ -86,8 +84,20 @@ export default class extends Controller {
           } else if (column == 'endTime') {
             td.innerText = (new Date(element.duration.endTimestamp)).toLocaleString()
           } else if (column === 'kgCO2') {
-            console.log(Number(element.kgCO2).toFixed(0).toLocaleString())
-            td.innerText = Number(element.kgCO2).toFixed(0).toLocaleString()
+            const thousandFormat = new Intl.NumberFormat('fr', {
+              maximumFractionDigits: 0, // Limit fractional digits to 0
+              roundingMode: "halfExpand" // Round up half-way numbers to the nearest integer
+            });
+            td.innerText = thousandFormat.format(Number(element.kgCO2))
+          } else if (column === 'distance') {
+            const distanceFormat = new Intl.NumberFormat('fr', {
+              notation: "compact",
+              compactDisplay: "long",
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2, // Limit fractional digits to 0
+              roundingMode: "halfExpand" // Round up half-way numbers to the nearest integer
+            });
+            td.innerText = distanceFormat.format(Number(element.distance))
           } else {
             td.innerText = element[column]
           }
